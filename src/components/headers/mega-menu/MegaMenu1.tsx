@@ -1,26 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 
-// MegaMenu1 için stil tanımlamaları
+// MegaMenu1 için responsive stil tanımlamaları
 const MenuContainer = styled.header<{ bgColor: string }>`
   background-color: ${props => props.bgColor};
-  padding: 15px 30px;
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden;
+  
+  @media (max-width: 992px) {
+    padding: 0.75rem 1.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem 1rem;
+  }
 `;
 
 const Logo = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
   color: ${props => props.color};
+  box-sizing: border-box;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 0.75rem;
+  }
 `;
 
-const Nav = styled.nav`
+const NavWrapper = styled.div`
   display: flex;
-  gap: 20px;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: space-between;
+  }
+`;
+
+const Nav = styled.nav<{ isOpen: boolean }>`
+  display: flex;
+  gap: 1.25rem;
   position: relative;
+  box-sizing: border-box;
+  max-width: 100%;
+  
+  @media (max-width: 992px) {
+    gap: 1rem;
+  }
+  
+  @media (max-width: 768px) {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    background-color: ${props => props.theme.backgroundColor || '#fff'};
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    max-height: ${props => props.isOpen ? '500px' : '0'};
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    z-index: 1000;
+    padding: ${props => props.isOpen ? '0.5rem 1rem' : '0 1rem'};
+    width: 100%;
+  }
 `;
 
 const NavItem = styled.div<{ color: string; fontSize: string; active: boolean }>`
@@ -29,10 +83,18 @@ const NavItem = styled.div<{ color: string; fontSize: string; active: boolean }>
   cursor: pointer;
   transition: color 0.3s;
   position: relative;
-  padding: 5px 0;
+  padding: 0.5rem 0;
+  box-sizing: border-box;
+  white-space: nowrap;
   
   &:hover {
     color: #3498db;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #eee;
+    width: 100%;
   }
 `;
 
@@ -44,32 +106,77 @@ const MegaMenuDropdown = styled.div<{ dropdownBgColor: string; visible: boolean 
   background-color: ${props => props.dropdownBgColor};
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   display: ${props => props.visible ? 'flex' : 'none'};
-  padding: 20px;
-  margin-top: 10px;
-  z-index: 1000;
+  padding: 1.25rem;
+  margin-top: 0.625rem;
+  z-index: 1001;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden;
+  flex-wrap: wrap;
+  
+  @media (max-width: 992px) {
+    padding: 1rem;
+  }
+  
+  @media (max-width: 768px) {
+    position: relative;
+    box-shadow: none;
+    margin-top: 0;
+    padding: 0.5rem 0 0.5rem 1rem;
+    flex-direction: column;
+  }
 `;
 
 const DropdownSection = styled.div`
   flex: 1;
-  padding: 0 20px;
+  padding: 0 1.25rem;
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: 100%;
+  
+  @media (max-width: 992px) {
+    padding: 0 0.75rem;
+    flex: 0 0 50%;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+    flex: 0 0 100%;
+  }
 `;
 
 const SectionTitle = styled.h4<{ color: string }>`
   color: ${props => props.color};
-  margin-bottom: 15px;
+  margin-bottom: 0.9375rem;
   font-size: 1.1rem;
-  padding-bottom: 8px;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid #eee;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 0.625rem;
+    font-size: 1rem;
+  }
 `;
 
 const SubItemsList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
+  box-sizing: border-box;
 `;
 
 const SubItem = styled.li`
-  margin-bottom: 10px;
+  margin-bottom: 0.625rem;
+  box-sizing: border-box;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 0.5rem;
+  }
 `;
 
 const SubItemLink = styled.a<{ color: string; fontSize: string }>`
@@ -77,10 +184,33 @@ const SubItemLink = styled.a<{ color: string; fontSize: string }>`
   text-decoration: none;
   font-size: ${props => props.fontSize};
   transition: color 0.3s;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
   
   &:hover {
     color: #3498db;
     padding-left: 5px;
+  }
+  
+  @media (max-width: 992px) {
+    font-size: calc(${props => props.fontSize} * 0.9);
+  }
+`;
+
+const MobileMenuToggle = styled.button`
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+  box-sizing: border-box;
+  
+  @media (max-width: 768px) {
+    display: block;
   }
 `;
 
@@ -219,6 +349,10 @@ const MegaMenu1: React.FC<MegaMenu1Props> = (props) => {
 
   // Açık mega menü için state
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
+  // Mobil menu açık/kapalı durumu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // Nav üzerinde bir tıklama olduğunda dışarı tıklamaları takip etmek için ref
+  const navRef = useRef<HTMLDivElement>(null);
 
   // Menü öğesine tıklama işleyicisi
   const handleMenuItemClick = (id: string, hasMegaMenu: boolean, link?: string) => {
@@ -229,11 +363,38 @@ const MegaMenu1: React.FC<MegaMenu1Props> = (props) => {
       console.log(`Navigating to: ${link}`);
     }
   };
+  
+  // Mobil menüyü aç/kapat
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+    if (activeMegaMenu) {
+      setActiveMegaMenu(null);
+    }
+  };
+  
+  // Dışarı tıklandığında menüyü kapat
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+        setActiveMegaMenu(null);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <MenuContainer bgColor={backgroundColor}>
-      <Logo color={logoColor}>{logoText}</Logo>
-      <Nav>
+      <NavWrapper>
+        <Logo color={logoColor}>{logoText}</Logo>
+        <MobileMenuToggle onClick={toggleMobileMenu}>
+          {isMobileMenuOpen ? '✕' : '☰'}
+        </MobileMenuToggle>
+      </NavWrapper>
+      <Nav ref={navRef} isOpen={isMobileMenuOpen} theme={{ backgroundColor }}>
         {menuItems.map(item => (
           <React.Fragment key={item.id}>
             <NavItem 
@@ -251,7 +412,9 @@ const MegaMenu1: React.FC<MegaMenu1Props> = (props) => {
               >
                 {item.sections.map(section => (
                   <DropdownSection key={section.id}>
-                    <SectionTitle color={dropdownTitleColor}>{section.title}</SectionTitle>
+                    <SectionTitle color={dropdownTitleColor}>
+                      {section.title}
+                    </SectionTitle>
                     <SubItemsList>
                       {section.items.map(subItem => (
                         <SubItem key={subItem.id}>

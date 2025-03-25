@@ -10,6 +10,7 @@ const CanvasContainer = styled.div`
   background-color: white;
   overflow: auto;
   padding: 20px;
+  box-sizing: border-box;
 `;
 
 const SitePreview = styled.div`
@@ -21,12 +22,23 @@ const SitePreview = styled.div`
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  
+  // Tüm alt bileşenlerin kenar sınırlaması
+  & > div {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
 `;
 
 const EmptyCanvasMessage = styled.div`
   padding: 50px 20px;
   text-align: center;
   color: #999;
+  box-sizing: border-box;
 `;
 
 // Komponent wrapper
@@ -34,6 +46,10 @@ const ComponentWrapper = styled.div<{ isSelected: boolean }>`
   position: relative;
   border: ${props => props.isSelected ? '2px solid #3498db' : 'none'};
   margin-bottom: ${props => props.isSelected ? '5px' : '0'};
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
   
   &:hover {
     outline: 1px dashed #ddd;
@@ -51,6 +67,7 @@ const PreviewOverlay = styled.div`
   z-index: 5; // Komponentlerin üzerinde ama kontrol butonlarının altında
   background-color: transparent;
   cursor: pointer;
+  box-sizing: border-box;
 `;
 
 const ComponentControls = styled.div`
@@ -63,6 +80,7 @@ const ComponentControls = styled.div`
   background-color: rgba(255, 255, 255, 0.8);
   border: 1px solid #ddd;
   z-index: 10; // Overlay'in üstünde olmalı
+  box-sizing: border-box;
 `;
 
 const ControlButton = styled.button`
@@ -72,6 +90,7 @@ const ControlButton = styled.button`
   border-radius: 3px;
   font-size: 0.8rem;
   cursor: pointer;
+  box-sizing: border-box;
   
   &:hover {
     background-color: #e9ecef;

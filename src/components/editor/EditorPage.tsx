@@ -137,9 +137,27 @@ const EditorPage: React.FC<EditorPageProps> = ({ onBack }) => {
   };
   
   // Önizleme için yönlendirme
-  const handlePreview = () => {
-    // Gerçek uygulamada önizleme sayfasına yönlendirme olabilir
-    alert('Önizleme fonksiyonu henüz eklenmedi.');
+  const handlePreview = async () => {
+    try {
+      // Önce siteyi otomatik olarak kaydet
+      await saveSite();
+      
+      // Site ID kontrolü - Kayıt işleminden sonra site ID'si mutlaka olmalı
+      if (!site.id) {
+        alert('Site kaydı tamamlanırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+        return;
+      }
+      
+      // Önizleme URL'si oluştur
+      const previewUrl = `/preview?siteId=${site.id}`;
+      
+      // Yeni sekmede önizleme sayfasını aç
+      window.open(previewUrl, '_blank');
+      console.log('Önizleme açıldı:', previewUrl);
+    } catch (error) {
+      console.error('Önizleme açılırken hata oluştu:', error);
+      alert('Önizleme açılırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+    }
   };
   
   // Dışa aktarma işlemi

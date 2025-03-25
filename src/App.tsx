@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import EditorPage from './components/editor/EditorPage';
 import { SiteProvider } from './context/SiteContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import UserManagement from './components/auth/UserManagement';
+import PreviewPage from './components/preview/PreviewPage';
 
 // Ana container stil
 const AppContainer = styled.div`
@@ -69,17 +71,10 @@ const SecondaryButton = styled(Button)`
 // Sayfa tiplerini tanımlama
 type PageType = 'home' | 'auth' | 'editor';
 
-// App içeriği - Auth durumuna göre içerik gösterir
-const AppContent: React.FC = () => {
-  const { user, loading } = useAuth();
+// Ana sayfa bileşeni
+const Home: React.FC = () => {
+  const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState<PageType>('home');
-  
-  // Auth durumu değiştiğinde sayfa yönlendirmesi
-  useEffect(() => {
-    if (user && currentPage === 'auth') {
-      setCurrentPage('editor');
-    }
-  }, [user, currentPage]);
   
   // Sayfa yönlendirmeleri
   const goToAuth = () => setCurrentPage('auth');
@@ -90,59 +85,101 @@ const AppContent: React.FC = () => {
       setCurrentPage('auth');
     }
   };
-  const goToHome = () => setCurrentPage('home');
   
-  // Yükleniyor durumu
+  if (currentPage === 'auth') {
+    return <Navigate to="/auth" />;
+  }
+  
+  if (currentPage === 'editor') {
+    return <Navigate to="/editor" />;
+  }
+  
+  return (
+    <HomePage>
+      <HomeTitle>Website Builder</HomeTitle>
+      <Description>
+        Modern ve kullanımı kolay web sitesi oluşturma aracına hoş geldiniz.
+        Sürükle-bırak arabirimini kullanarak dakikalar içinde profesyonel 
+        web siteleri oluşturun, hiçbir kodlama bilgisi gerektirmez.
+      </Description>
+      <ButtonGroup>
+        <Button onClick={goToEditor}>
+          {user ? 'Editöre Git' : 'Yeni Site Oluştur'}
+        </Button>
+        {!user && (
+          <SecondaryButton onClick={goToAuth}>
+            Giriş Yap / Kayıt Ol
+          </SecondaryButton>
+        )}
+      </ButtonGroup>
+    </HomePage>
+  );
+};
+
+// Yükleme sayfası
+const LoadingPage: React.FC = () => (
+  <HomePage>
+    <HomeTitle>Yükleniyor...</HomeTitle>
+  </HomePage>
+);
+
+// Korumalı route için wrapper
+const ProtectedRoute: React.FC<{ 
+  element: React.ReactNode
+}> = ({ element }) => {
+  const { user, loading } = useAuth();
+  
   if (loading) {
-    return (
-      <HomePage>
-        <HomeTitle>Yükleniyor...</HomeTitle>
-      </HomePage>
-    );
+    return <LoadingPage />;
   }
   
-  // Sayfa içeriğini belirle
-  switch (currentPage) {
-    case 'auth':
-      return <UserManagement />;
-    case 'editor':
-      return (
-        <SiteProvider>
-          <EditorPage onBack={goToHome} />
-        </SiteProvider>
-      );
-    default:
-      return (
-        <HomePage>
-          <HomeTitle>Website Builder</HomeTitle>
-          <Description>
-            Modern ve kullanımı kolay web sitesi oluşturma aracına hoş geldiniz.
-            Sürükle-bırak arabirimini kullanarak dakikalar içinde profesyonel 
-            web siteleri oluşturun, hiçbir kodlama bilgisi gerektirmez.
-          </Description>
-          <ButtonGroup>
-            <Button onClick={goToEditor}>
-              {user ? 'Editöre Git' : 'Yeni Site Oluştur'}
-            </Button>
-            {!user && (
-              <SecondaryButton onClick={goToAuth}>
-                Giriş Yap / Kayıt Ol
-              </SecondaryButton>
-            )}
-          </ButtonGroup>
-        </HomePage>
-      );
+  if (!user) {
+    return <Navigate to="/auth" />;
   }
+  
+  return <>{element}</>;
+};
+
+// App içeriği - Router ile yapılandırılmış
+const AppContent: React.FC = () => {
+  const { loading } = useAuth();
+  
+  if (loading) {
+    return <LoadingPage />;
+  }
+  
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/auth" element={<UserManagement />} />
+      <Route 
+        path="/editor" 
+        element={
+          <ProtectedRoute 
+            element={
+              <SiteProvider>
+                <EditorPage onBack={() => <Navigate to="/" />} />
+              </SiteProvider>
+            } 
+          />
+        } 
+      />
+      <Route path="/preview" element={<PreviewPage />} />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
 };
 
 // Ana uygulama bileşeni
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContainer>
-        <AppContent />
-      </AppContainer>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <AppContainer>
+          <AppContent />
+        </AppContainer>
+      </AuthProvider>
+    </Router>
   );
 };
 

@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
-// StickyMenu1 için stil tanımlamaları
+// StickyMenu1 için responsive stil tanımlamaları
 const MenuWrapper = styled.div`
   width: 100%;
   position: relative;
-  height: 70px;
+  height: 4.375rem; // 70px'i rem cinsine çevirdik
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden;
+  
+  @media (max-width: 768px) {
+    height: 3.75rem;
+  }
 `;
 
 interface MenuContainerProps {
@@ -17,7 +24,7 @@ interface MenuContainerProps {
 const MenuContainer = styled.header<MenuContainerProps>`
   width: 100%;
   background-color: ${props => props.isSticky ? props.stickyBgColor : props.bgColor};
-  padding: ${props => props.isSticky ? '10px 30px' : '15px 30px'};
+  padding: ${props => props.isSticky ? '0.625rem 1.875rem' : '0.9375rem 1.875rem'};
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -27,6 +34,18 @@ const MenuContainer = styled.header<MenuContainerProps>`
   left: 0;
   z-index: 1000;
   box-shadow: ${props => props.isSticky ? '0 2px 10px rgba(0, 0, 0, 0.1)' : 'none'};
+  box-sizing: border-box;
+  max-width: 100vw;
+  overflow-x: hidden;
+  
+  @media (max-width: 992px) {
+    padding: ${props => props.isSticky ? '0.5rem 1.25rem' : '0.75rem 1.25rem'};
+  }
+  
+  @media (max-width: 768px) {
+    padding: ${props => props.isSticky ? '0.5rem 1rem' : '0.625rem 1rem'};
+    flex-wrap: wrap;
+  }
 `;
 
 interface LogoProps {
@@ -40,11 +59,31 @@ const Logo = styled.div<LogoProps>`
   font-weight: bold;
   color: ${props => props.isSticky ? props.stickyColor : props.color};
   transition: all 0.3s ease;
+  box-sizing: border-box;
+  
+  @media (max-width: 768px) {
+    font-size: ${props => props.isSticky ? '1.1rem' : '1.3rem'};
+  }
 `;
 
-const Nav = styled.nav`
+const Nav = styled.nav<{ isMenuOpen: boolean }>`
   display: flex;
-  gap: 20px;
+  gap: 1.25rem;
+  box-sizing: border-box;
+  max-width: 100%;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+    padding-top: ${props => props.isMenuOpen ? '0.75rem' : '0'};
+    max-height: ${props => props.isMenuOpen ? '300px' : '0'};
+    overflow: hidden;
+    transition: all 0.3s ease;
+    visibility: ${props => props.isMenuOpen ? 'visible' : 'hidden'};
+    opacity: ${props => props.isMenuOpen ? '1' : '0'};
+    margin-top: ${props => props.isMenuOpen ? '0.75rem' : '0'};
+  }
 `;
 
 interface NavItemProps {
@@ -60,9 +99,35 @@ const NavItem = styled.a<NavItemProps>`
   text-decoration: none;
   font-size: ${props => props.isSticky ? props.stickyFontSize : props.fontSize};
   transition: all 0.3s ease;
+  box-sizing: border-box;
+  white-space: nowrap;
   
   &:hover {
     color: #3498db;
+  }
+  
+  @media (max-width: 992px) {
+    font-size: calc(${props => props.isSticky ? props.stickyFontSize : props.fontSize} * 0.9);
+  }
+  
+  @media (max-width: 768px) {
+    display: block;
+    padding: 0.5rem 0;
+  }
+`;
+
+const MobileMenuToggle = styled.button<{ isSticky: boolean; color: string; stickyColor: string }>`
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: ${props => props.isSticky ? props.stickyColor : props.color};
+  transition: color 0.3s ease;
+  box-sizing: border-box;
+  
+  @media (max-width: 768px) {
+    display: block;
   }
 `;
 
@@ -127,6 +192,8 @@ const StickyMenu1: React.FC<StickyMenu1Props> = (props) => {
 
   // Menünün yapışkan durumunu kontrol etmek için state
   const [isSticky, setIsSticky] = useState(false);
+  // Mobil menü açık/kapalı durumu
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Scroll eventini dinleyerek yapışkan durumu güncelleme
   useEffect(() => {
@@ -142,6 +209,11 @@ const StickyMenu1: React.FC<StickyMenu1Props> = (props) => {
     };
   }, [scrollThreshold]);
 
+  // Mobil menüyü aç/kapat
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
     <MenuWrapper>
       <MenuContainer 
@@ -156,7 +228,17 @@ const StickyMenu1: React.FC<StickyMenu1Props> = (props) => {
         >
           {logoText}
         </Logo>
-        <Nav>
+        
+        <MobileMenuToggle 
+          onClick={toggleMenu}
+          isSticky={isSticky}
+          color={textColor}
+          stickyColor={stickyTextColor}
+        >
+          {isMenuOpen ? '✕' : '☰'}
+        </MobileMenuToggle>
+        
+        <Nav isMenuOpen={isMenuOpen}>
           {menuItems.map(item => (
             <NavItem 
               key={item.id} 
