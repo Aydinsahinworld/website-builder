@@ -123,9 +123,17 @@ const EditorPage: React.FC<EditorPageProps> = ({ onBack }) => {
   const selectedComponent = getSelectedComponent();
   
   // Siteyi kaydet
-  const handleSave = () => {
-    saveSite();
-    alert('Site başarıyla kaydedildi!');
+  const handleSave = async () => {
+    try {
+      await saveSite();
+      console.log('Site başarıyla kaydedildi');
+      // Başarılı kayıt bildirimi gösterelim
+      alert('Site başarıyla kaydedildi!');
+    } catch (error) {
+      console.error('Site kaydedilirken hata oluştu:', error);
+      // Hata durumunda kullanıcıya bildirelim
+      alert('Site kaydedilirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+    }
   };
   
   // Önizleme için yönlendirme
@@ -140,10 +148,22 @@ const EditorPage: React.FC<EditorPageProps> = ({ onBack }) => {
     alert('Dışa aktarma fonksiyonu henüz eklenmedi.');
   };
 
-  // Çıkış işlemi
-  const handleLogout = () => {
-    logout();
-    onBack();
+  // Çıkış işlemi - önce siteyi kaydet, sonra çıkış yap
+  const handleLogout = async () => {
+    try {
+      // Önce siteyi kaydedelim
+      await saveSite();
+      console.log('Site kaydedildi, çıkış yapılıyor...');
+      
+      // Sonra çıkış yapalım
+      logout();
+      onBack();
+    } catch (error) {
+      console.error('Çıkış yaparken hata oluştu:', error);
+      // Hata oluşsa bile çıkış yapalım
+      logout();
+      onBack();
+    }
   };
 
   return (
